@@ -1,0 +1,80 @@
+[
+  {
+    "id": "ALT-101",
+    "hazard_type": "pothole",
+    "severity": "high",
+    "description": "Deep open pothole on the pedestrian crosswalk near curb",
+    "location": {
+      "lat": 40.7592,
+      "lng": -73.9849
+    },
+    "reported_by": "Nearby Citizen (SafeWalk App)",
+    "timestamp": "2026-10-28T19:14:13.720577",
+    "upvotes": 5
+  },
+  {
+    "id": "ALT-102",
+    "hazard_type": "construction",
+    "severity": "high",
+    "description": "Metal scaffolding extending into sidewalk, low hanging pipe",
+    "location": {
+      "lat": 40.7608,
+      "lng": -73.9841
+    },
+    "reported_by": "Store Merchant",
+    "timestamp": "2026-10-28T19:14:13.720577",
+    "upvotes": 12
+  },
+  {
+    "id": "ALT-103",
+    "hazard_type": "crowd",
+    "severity": "medium",
+    "description": "Large gathering and queue blocking subway entrance sidewalk",
+    "location": {
+      "lat": 40.7599,
+      "lng": -73.9845
+    },
+    "reported_by": "Pedestrian Volunteer",
+    "timestamp": "2026-10-28T19:14:13.720577",
+    "upvotes": 3
+  },
+  {
+    "id": "ALT-104",
+    "hazard_type": "obstacle",
+    "severity": "critical",
+    "description": "Electric delivery scooter discarded horizontally across tactile path",
+    "location": {
+      "lat": 40.7618,
+      "lng": -73.9836
+    },
+    "reported_by": "ARIA Community Member",
+    "timestamp": "2026-10-28T19:14:13.720577",
+    "upvotes": 8
+  },
+  {
+    "id": "ALT-105",
+    "hazard_type": "traffic",
+    "severity": "high",
+    "description": "Traffic signal acoustic chirper malfunctioning, heavy turning vehicles",
+    "location": {
+      "lat": 40.7601,
+      "lng": -73.9847
+    },
+    "reported_by": "Traffic Warden",
+    "timestamp": "2026-10-28T19:14:13.720577",
+    "upvotes": 7
+  },
+  {
+    "id": "ALT-1355",
+    "hazard_type": "pothole",
+    "severity": "high",
+    "description": "Unit Test Pothole",
+    "location": {
+      "lat": 40.758500000000005,
+      "lng": -73.985
+    },
+    "reported_by": "Community User",
+    "timestamp": "2026-10-28T19:15:03.216198",
+    "upvotes": 1
+  }
+]
