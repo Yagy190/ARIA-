@@ -1,0 +1,374 @@
+# config.py
+import os
+
+# ⚠️ SET YOUR API KEYS HERE ⚠️
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "YOUR_GOOGLE_MAPS_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "YOUR_GEMINI_KEY")
+FIREBASE_SERVER_KEY = os.getenv("FIREBASE_SERVER_KEY", "YOUR_FIREBASE_KEY")
+
+# Default location for testing
+USER_LOCATION = {"lat": 40.7128, "lng": -74.0060}  # NYC
+
+# voice_interface.py
+import speech_recognition as sr
+import pyttsx3
+from gemini_api import GeminiSTT, GeminiTTS
+import threading
+import time
+
+class VoiceInterface:
+    def __init__(self):
+        self.recognizer = sr.Recognizer()
+        self.microphone = sr.Microphone()
+        self.tts_engine = pyttsx3.init()
+        self.gemini_stt = GeminiSTT()
+        self.gemini_tts = GeminiTTS()
+        self.listening = False
+        
+    def listen(self, timeout=5):
+        """Listen for user command"""
+        try:
+            print("🔴 Listening... (speak now)")
+            with self.microphone as source:
+                self.recognizer.adjust_for_ambient_noise(source)
+                audio = self.recognizer.listen(source, timeout=timeout)
+            
+            command = self.gemini_stt.transcribe(audio)
+            print(f"👤 You said: {command}")
+            return command.lower()
+        except sr.WaitTimeoutError:
+            return None
+        except Exception as e:
+            print(f"❌ Voice recognition error: {e}")
+            return None
+    
+    def speak(self, text):
+        """Speak text aloud"""
+        print(f"🔊 ARIA: {text}")
+        self.gemini_tts.speak(text)
+    
+    def continuous_listen(self, callback):
+        """Continuous listening loop"""
+        while True:
+            command = self.listen()
+            if command:
+                callback(command)
+                
+# maps_navigation.py
+import requests
+import json
+from config import GOOGLE_MAPS_API_KEY
+
+class MapsNavigation:
+    def __init__(self):
+        self.api_key = GOOGLE_MAPS_API_KEY
+    
+    def geocode_address(self, address):
+        """Convert address to lat/lng"""
+        url = f"https://maps.googleapis.com/maps/api/geocode/json"
+        params = {
+            "address": address,
+            "key": self.api_key
+        }
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        if data["status"] == "OK":
+            location = data["results"][0]["geometry"]["location"]
+            return {"lat": location["lat"], "lng": location["lng"]}
+        return None
+    
+    def get_walking_route(self, origin, destination):
+        """Get walking directions"""
+        url = "https://maps.googleapis.com/maps/api/directions/json"
+        params = {
+            "origin": f"{origin['lat']},{origin['lng']}",
+            "destination": f"{destination['lat']},{destination['lng']}",
+            "mode": "walking",
+            "key": self.api_key
+        }
+        
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        if data["status"] == "OK":
+            route = data["routes"][0]
+            steps = []
+            for step in route["legs"][0]["steps"]:
+                steps.append({
+                    "instruction": step["html_instructions"].replace("<b>", "").replace("</b>", ""),
+                    "distance": step["distance"]["text"],
+                    "duration": step["duration"]["text"],
+                    "lat": step["start_location"]["lat"],
+                    "lng": step["start_location"]["lng"]
+                })
+            return {
+                "distance": route["legs"][0]["distance"]["text"],
+                "duration": route["legs"][0]["duration"]["text"],
+                "steps": steps
+            }
+        return None
+# society_inputs.py
+import random
+import time
+from datetime import datetime, timedelta
+
+class SocietyInputs:
+    def __init__(self):
+        # Simulated society alerts database
+        self.alerts = []
+    
+    def add_alert(self, location, hazard_type, description, severity="medium"):
+        """Add new alert from nearby users"""
+        alert = {
+            "id": len(self.alerts) + 1,
+            "location": location,
+            "hazard_type": hazard_type,
+            "description": description,
+            "severity": severity,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.alerts.append(alert)
+        print(f"📱 New society alert: {description}")
+    
+    def get_relevant_alerts(self, route_steps, radius_km=0.5):
+        """Get alerts relevant to current route"""
+        relevant_alerts = []
+        for step in route_steps:
+            for alert in self.alerts:
+                # Simple distance check (in practice, use Haversine formula)
+                if random.random() < 0.3:  # 30% chance of relevant alert
+                    relevant_alerts.append(alert)
+        return relevant_alerts
+    
+    def simulate_society_inputs(self):
+        """Simulate incoming alerts"""
+        hazards = [
+            ("pothole", "Large pothole on sidewalk", "high"),
+            ("construction", "Road construction ahead", "medium"),
+            ("crowd", "Heavy crowd blocking path", "low"),
+            ("obstacle", "Fallen tree branch", "high")
+        ]
+        if random.random() < 0.4:
+            hazard_type, desc, severity = random.choice(hazards)
+            self.add_alert({"lat": 40.7128, "lng": -74.0060}, hazard_type, desc, severity)
+
+# risk_engine.py
+class RiskEngine:
+    def __init__(self):
+        self.risk_scores = {
+            "pothole": 8,
+            "construction": 6,
+            "crowd": 4,
+            "obstacle": 9,
+            "traffic": 7
+        }
+    
+    def analyze_route(self, route_steps, society_alerts):
+        """Analyze risks along route"""
+        risks = []
+        total_risk = 0
+        
+        for step in route_steps:
+            step_risks = []
+            for alert in society_alerts:
+                risk_score = self.risk_scores.get(alert["hazard_type"], 3)
+                total_risk += risk_score
+                step_risks.append({
+                    "alert": alert,
+                    "risk_score": risk_score,
+                    "warning": self.generate_warning(alert)
+                })
+            if step_risks:
+                risks.append({
+                    "step": step["instruction"],
+                    "risks": step_risks
+                })
+        
+        risk_level = "LOW" if total_risk < 10 else "MEDIUM" if total_risk < 20 else "HIGH"
+        
+        return {
+            "risk_level": risk_level,
+            "total_risk_score": total_risk,
+            "risks": risks,
+            "safe_to_proceed": total_risk < 15
+        }
+    
+    def generate_warning(self, alert):
+        warnings = {
+            "pothole": "⚠️ Large pothole ahead! Step carefully to your left.",
+            "construction": "🔨 Construction zone ahead. Walk slowly and listen for workers.",
+            "crowd": "👥 Heavy crowd ahead. Stay to the right and proceed slowly.",
+            "obstacle": "🚧 Major obstacle ahead. Stop and assess with cane first."
+        }
+        return warnings.get(alert["hazard_type"], f"⚠️ {alert['description']}")
+
+# vehicle_alerts.py
+import requests
+from config import FIREBASE_SERVER_KEY
+
+class VehicleAlerts:
+    def __init__(self):
+        self.server_key = FIREBASE_SERVER_KEY
+    
+    def send_alert(self, pedestrian_location, risk_info):
+        """Send alert to nearby vehicles via FCM"""
+        if not self.server_key or self.server_key == "YOUR_FIREBASE_KEY":
+            print("📱 [SIMULATED] FCM alert sent to nearby vehicles")
+            print(f"   Location: {pedestrian_location}")
+            print(f"   Risk: {risk_info}")
+            return True
+        
+        # Real FCM implementation
+        url = "https://fcm.googleapis.com/fcm/send"
+        headers = {
+            "Authorization": f"key={self.server_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "to": "/topics/nearby_vehicles",
+            "notification": {
+                "title": "🚶‍♂️ Pedestrian Alert - ARIA",
+                "body": f"Blind pedestrian at {pedestrian_location['lat']}, {pedestrian_location['lng']}. {risk_info}",
+                "priority": "high"
+            },
+            "data": {
+                "type": "pedestrian_alert",
+                "lat": str(pedestrian_location['lat']),
+                "lng": str(pedestrian_location['lng']),
+                "risk": risk_info
+            }
+        }
+        
+        response = requests.post(url, headers=headers, json=payload)
+        return response.status_code == 200
+    
+# gemini_api.py
+import speech_recognition as sr
+import pyttsx3
+
+class GeminiSTT:
+    def transcribe(self, audio):
+        # Mock Gemini STT - replace with real API
+        recognizer = sr.Recognizer()
+        try:
+            text = recognizer.recognize_google(audio)
+            return text
+        except:
+            return "navigate to hospital"  # Mock input
+
+class GeminiTTS:
+    def speak(self, text):
+        engine = pyttsx3.init()
+        engine.say(text)
+        engine.runAndWait()
+        
+# main.py
+from voice_interface import VoiceInterface
+from maps_navigation import MapsNavigation
+from society_inputs import SocietyInputs
+from risk_engine import RiskEngine
+from vehicle_alerts import VehicleAlerts
+from config import USER_LOCATION
+import time
+import threading
+
+class ARIA:
+    def __init__(self):
+        self.voice = VoiceInterface()
+        self.maps = MapsNavigation()
+        self.society = SocietyInputs()
+        self.risk_engine = RiskEngine()
+        self.vehicles = VehicleAlerts()
+        self.current_route = None
+        self.current_step = 0
+        
+    def handle_command(self, command):
+        if "navigate" in command or "go to" in command:
+            destination = self.extract_destination(command)
+            self.start_navigation(destination)
+        elif "stop" in command:
+            self.stop_navigation()
+        elif "status" in command:
+            self.report_status()
+    
+    def extract_destination(self, command):
+        """Extract destination from voice command"""
+        destinations = ["hospital", "store", "home", "park", "coffee shop"]
+        for dest in destinations:
+            if dest in command:
+                return dest
+        return "hospital"  # Default
+    
+    def start_navigation(self, destination):
+        self.voice.speak("Starting navigation. Finding safest route...")
+        
+        # Geocode destination
+        dest_coords = self.maps.geocode_address(destination)
+        if not dest_coords:
+            self.voice.speak("Could not find that location. Try again.")
+            return
+        
+        # Get route
+        self.current_route = self.maps.get_walking_route(USER_LOCATION, dest_coords)
+        if not self.current_route:
+            self.voice.speak("No walking route available.")
+            return
+        
+        self.voice.speak(f"Route found! {self.current_route['distance']} - {self.current_route['duration']}")
+        
+        # Simulate society inputs
+        threading.Thread(target=self.society.simulate_society_inputs, daemon=True).start()
+        time.sleep(2)
+        
+        # Analyze risks
+        society_alerts = self.society.get_relevant_alerts(self.current_route["steps"])
+        risk_analysis = self.risk_engine.analyze_route(self.current_route["steps"], society_alerts)
+        
+        if risk_analysis["risk_level"] != "LOW":
+            self.voice.speak(f"Warning! {risk_analysis['risk_level']} risk detected.")
+            for risk in risk_analysis["risks"][:2]:  # First 2 risks
+                self.voice.speak(risk["risks"][0]["warning"])
+            
+            # Alert vehicles
+            self.vehicles.send_alert(USER_LOCATION, f"{risk_analysis['risk_level']} risk ahead")
+        
+        self.current_step = 0
+        self.guide_step_by_step()
+    
+    def guide_step_by_step(self):
+        """Guide user step by step"""
+        while self.current_step < len(self.current_route["steps"]):
+            step = self.current_route["steps"][self.current_step]
+            instruction = f"Walk {step['distance']}. {step['instruction']}"
+            self.voice.speak(instruction)
+            
+            # Wait for user acknowledgment or next command
+            command = self.voice.listen(timeout=10)
+            if command and ("next" in command or "continue" in command):
+                self.current_step += 1
+            elif command and "stop" in command:
+                break
+    
+    def stop_navigation(self):
+        self.current_route = None
+        self.current_step = 0
+        self.voice.speak("Navigation stopped.")
+    
+    def report_status(self):
+        if self.current_route:
+            remaining_steps = len(self.current_route["steps"]) - self.current_step
+            self.voice.speak(f"You have {remaining_steps} steps remaining.")
+        else:
+            self.voice.speak("No active navigation.")
+    
+    def run(self):
+        self.voice.speak("ARIA activated. Say 'navigate to [place]' to begin.")
+        while True:
+            command = self.voice.listen()
+            if command:
+                self.handle_command(command)
+
+if __name__ == "__main__":
+    aria = ARIA()
+    aria.run()
