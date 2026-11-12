@@ -1,11 +1,11 @@
-# 🦾 ARIA – Accessible Routing & Intelligent Alerts
+#  ARIA – Accessible Routing & Intelligent Alerts
 
 > **The Universal Accessibility & Safety Intelligence Layer for Google Maps and Urban Mapping Systems.**  
 > ARIA is **not a standalone navigation app**—it is a **plug-and-play middleware overlay / SDK** that operates directly inside or on top of any existing map provider (Google Maps, Apple Maps, Mapbox, or OEM Navigation SDKs). It enriches standard mapping with crowdsourced micro-hazard detection, cane-aware tactile audio guidance, and Vehicle-to-Everything (V2X) pedestrian safety alerts.
 
 ---
 
-## 🌟 The Layer Concept: Why ARIA Sits Inside Google Maps
+##  The Layer Concept: Why ARIA Sits Inside Google Maps
 
 Standard navigation apps like Google Maps are built for sighted users. They assume the pedestrian can see road obstacles, spot construction scaffolding, and watch for turning vehicles.
 
@@ -13,11 +13,11 @@ Standard navigation apps like Google Maps are built for sighted users. They assu
 
 ```mermaid
 flowchart TD
-    subgraph HostMap ["🗺️ Existing Navigation System (e.g. Google Maps)"]
+    subgraph HostMap [" Existing Navigation System (e.g. Google Maps)"]
         GMR[Raw Google Maps Route / GPS Telemetry Stream]
     end
 
-    subgraph AriaLayer ["🦾 ARIA Accessibility & Safety Layer (Middleware Overlay)"]
+    subgraph AriaLayer [" ARIA Accessibility & Safety Layer (Middleware Overlay)"]
         AI[Route & Telemetry Interceptor]
         SH[Crowdsourced Micro-Hazards DB\nPotholes, Scaffolding, Crowds, Broken Chirpers]
         RE[Spatial Risk & Tactile Engine\nHaversine Distance & Crossing Multipliers]
@@ -25,9 +25,9 @@ flowchart TD
         VX[V2X Vehicle Safety Dispatcher\nFirebase FCM / Direct Vehicle Broadcast]
     end
 
-    subgraph Outputs ["📢 Multi-Sensory & Vehicle Outputs"]
-        PED[🗣️ Visually Impaired Pedestrian\nHeadphones / Bone-Conduction Audio]
-        CARS[🚗 Connected Vehicles within 200m\nEmergency Cockpit HUD Slow-Down Alert]
+    subgraph Outputs [" Multi-Sensory & Vehicle Outputs"]
+        PED[ Visually Impaired Pedestrian\nHeadphones / Bone-Conduction Audio]
+        CARS[ Connected Vehicles within 200m\nEmergency Cockpit HUD Slow-Down Alert]
     end
 
     GMR --> AI
@@ -41,7 +41,7 @@ flowchart TD
 
 ---
 
-## 🔄 How the ARIA Layer Works: Before & After
+##  How the ARIA Layer Works: Before & After
 
 | Feature | Standard Google Maps (Without ARIA) | Google Maps + ARIA Intelligence Layer |
 | :--- | :--- | :--- |
@@ -52,14 +52,14 @@ flowchart TD
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```text
 aria( hacka idea)/
 │
-├── aria_layer.py         # 🧠 Core ARIA Intelligence Layer (Middleware & Route Interceptor)
-├── layer_demo.py         # 🚀 Demonstration showing Google Maps routes augmented by ARIA
-├── api_server.py         # 🌐 FastAPI Middleware Server for mobile/web Google Maps integration
+├── aria_layer.py         #  Core ARIA Intelligence Layer (Middleware & Route Interceptor)
+├── layer_demo.py         #  Demonstration showing Google Maps routes augmented by ARIA
+├── api_server.py         #  FastAPI Middleware Server for mobile/web Google Maps integration
 │
 ├── config.py             # Configuration loader, API keys & environment settings
 ├── gemini_api.py         # Google Gemini integration (gemini-3.8-flash for spatial tactile cues)
@@ -84,7 +84,7 @@ aria( hacka idea)/
 
 ---
 
-## 💻 Developer Integration: Using ARIA as a Layer
+##  Developer Integration: Using ARIA as a Layer
 
 You can embed ARIA inside any Python app, Google Maps pipeline, or navigation service in 3 lines of code:
 
@@ -108,7 +108,7 @@ if gps_event["vehicle_alert_dispatched"]:
 
 ---
 
-## 🌐 REST API Endpoints (For Mobile & Web Google Maps Integration)
+##  REST API Endpoints (For Mobile & Web Google Maps Integration)
 
 Start the ARIA middleware API server:
 ```bash
@@ -123,7 +123,7 @@ python api_server.py
 
 ---
 
-## ▶️ Execution & Testing
+##  Execution & Testing
 
 ### 1. Run the Layer Demonstration (Before vs. After Google Maps)
 ```bash
@@ -150,7 +150,7 @@ python test_aria.py
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - **Core**: Python 3.10+
 - **Host Mapping**: Google Maps Directions & Geocoding API / OpenStreetMap OSRM
